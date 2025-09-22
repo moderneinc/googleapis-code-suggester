@@ -124,6 +124,7 @@ export function buildReviewComments(
  * Make a request to GitHub to make review comments
  * @param octokit an authenticated octokit instance
  * @param suggestions code suggestions patches
+ * @param outOfScopeSuggestions suggestions that could not be made
  * @param remote the repository domain
  * @param pullNumber the pull request number to make a review on
  */
@@ -137,9 +138,10 @@ export async function makeInlineSuggestions(
   const comments = buildReviewComments(suggestions);
   if (!comments.length) {
     logger.info('No valid suggestions to make');
+    return null;
   }
-  if (!comments.length && !outOfScopeSuggestions.size) {
-    logger.info('No suggestions were generated. Exiting...');
+  if (!outOfScopeSuggestions.size) {
+    logger.info('Only out of scope suggestions. Exiting...');
     return null;
   }
   const summaryComment = buildSummaryComment(outOfScopeSuggestions);
