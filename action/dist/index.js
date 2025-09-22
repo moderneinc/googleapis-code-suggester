@@ -30793,6 +30793,7 @@ function buildReviewComments(suggestions) {
  * Make a request to GitHub to make review comments
  * @param octokit an authenticated octokit instance
  * @param suggestions code suggestions patches
+ * @param outOfScopeSuggestions suggestions that could not be made
  * @param remote the repository domain
  * @param pullNumber the pull request number to make a review on
  */
@@ -30800,9 +30801,10 @@ async function makeInlineSuggestions(octokit, suggestions, outOfScopeSuggestions
     const comments = buildReviewComments(suggestions);
     if (!comments.length) {
         logger_1.logger.info('No valid suggestions to make');
+        return null;
     }
-    if (!comments.length && !outOfScopeSuggestions.size) {
-        logger_1.logger.info('No suggestions were generated. Exiting...');
+    if (!outOfScopeSuggestions.size) {
+        logger_1.logger.info('Only out of scope suggestions. Exiting...');
         return null;
     }
     const summaryComment = buildSummaryComment(outOfScopeSuggestions);
