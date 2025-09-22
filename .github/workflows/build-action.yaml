@@ -36,8 +36,8 @@ jobs:
           ACCESS_TOKEN: ${{ secrets.FORK_TOKEN }}
         with:
           command: pr
-          upstream_owner: googleapis
-          upstream_repo: code-suggester
+          upstream_owner: moderneinc
+          upstream_repo: googleapis-code-suggester
           description: 'Compiles the code-suggester action dist'
           title: 'build(action): build dist'
           message: 'build(action): build dist'
