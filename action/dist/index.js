@@ -30803,13 +30803,9 @@ async function makeInlineSuggestions(octokit, suggestions, outOfScopeSuggestions
         logger_1.logger.info('No valid suggestions to make');
         return null;
     }
-    if (!outOfScopeSuggestions.size) {
-        logger_1.logger.info('Only out of scope suggestions. Exiting...');
-        return null;
-    }
     const summaryComment = buildSummaryComment(outOfScopeSuggestions);
     if (summaryComment) {
-        logger_1.logger.warn('Some suggestions could not be made');
+        logger_1.logger.warn(summaryComment);
     }
     // apply the suggestions to the latest sha
     // the latest Pull Request hunk range includes
