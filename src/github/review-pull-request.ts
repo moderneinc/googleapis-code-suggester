@@ -140,13 +140,9 @@ export async function makeInlineSuggestions(
     logger.info('No valid suggestions to make');
     return null;
   }
-  if (!outOfScopeSuggestions.size) {
-    logger.info('Only out of scope suggestions. Exiting...');
-    return null;
-  }
   const summaryComment = buildSummaryComment(outOfScopeSuggestions);
   if (summaryComment) {
-    logger.warn('Some suggestions could not be made');
+    logger.warn(summaryComment);
   }
   // apply the suggestions to the latest sha
   // the latest Pull Request hunk range includes
