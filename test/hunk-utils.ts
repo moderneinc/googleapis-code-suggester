@@ -41,6 +41,26 @@ describe('adjustHunkUp', () => {
       newContent: ["- name: 'ubuntu'", "  args: ['sleep', '301']"],
     });
   });
+  it('preserves newlineAddedAtEnd when adjusting up', () => {
+    const hunk = {
+      oldStart: 5,
+      oldEnd: 5,
+      newStart: 5,
+      newEnd: 5,
+      newContent: ["  args: ['sleep', '301']"],
+      previousLine: "- name: 'ubuntu'",
+      newlineAddedAtEnd: true,
+    };
+    const adjustedHunk = adjustHunkUp(hunk);
+    assert.deepStrictEqual(adjustedHunk, {
+      oldStart: 4,
+      oldEnd: 5,
+      newStart: 4,
+      newEnd: 5,
+      newContent: ["- name: 'ubuntu'", "  args: ['sleep', '301']"],
+      newlineAddedAtEnd: true,
+    });
+  });
   it('returns null if there is no previous line', () => {
     const hunk = {
       oldStart: 5,
@@ -64,6 +84,25 @@ describe('adjustHunkDown', () => {
       newContent: ["  args: ['sleep', '301']"],
       nextLine: "- name: 'ubuntu'",
       previousLine: "- name: 'ubuntu'",
+    };
+    const adjustedHunk = adjustHunkDown(hunk);
+    assert.deepStrictEqual(adjustedHunk, {
+      oldStart: 5,
+      oldEnd: 6,
+      newStart: 5,
+      newEnd: 6,
+      newContent: ["  args: ['sleep', '301']", "- name: 'ubuntu'"],
+    });
+  });
+  it('clears newlineAddedAtEnd when adjusting down (no longer at EOF)', () => {
+    const hunk = {
+      oldStart: 5,
+      oldEnd: 5,
+      newStart: 5,
+      newEnd: 5,
+      newContent: ["  args: ['sleep', '301']"],
+      nextLine: "- name: 'ubuntu'",
+      newlineAddedAtEnd: true,
     };
     const adjustedHunk = adjustHunkDown(hunk);
     assert.deepStrictEqual(adjustedHunk, {

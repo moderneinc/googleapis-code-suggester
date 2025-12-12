@@ -31,6 +31,7 @@ export function adjustHunkUp(hunk: Hunk): Hunk | null {
     newStart: hunk.newStart - 1,
     newEnd: hunk.newEnd,
     newContent: [hunk.previousLine, ...hunk.newContent],
+    ...(hunk.newlineAddedAtEnd ? {newlineAddedAtEnd: true} : {}),
   };
 }
 
@@ -43,6 +44,8 @@ export function adjustHunkDown(hunk: Hunk): Hunk | null {
   if (!hunk.nextLine) {
     return null;
   }
+  // When extending down, the hunk is no longer at the end of file,
+  // so newlineAddedAtEnd does not apply
   return {
     oldStart: hunk.oldStart,
     oldEnd: hunk.oldEnd + 1,

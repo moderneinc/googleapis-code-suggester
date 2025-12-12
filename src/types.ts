@@ -186,6 +186,8 @@ export interface Hunk {
   readonly newContent: string[];
   readonly previousLine?: string;
   readonly nextLine?: string;
+  /** True when this hunk adds a trailing newline to the end of the file. */
+  readonly newlineAddedAtEnd?: boolean;
 }
 
 interface LogFn {

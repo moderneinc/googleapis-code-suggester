@@ -143,6 +143,28 @@ describe('buildFileComments', () => {
       },
     ]);
   });
+  it('Adds extra newline when adding trailing newline to file', () => {
+    const suggestions: Map<string, Hunk[]> = new Map();
+    const fileName1 = 'foo.txt';
+    const hunk1: Hunk = {
+      oldStart: 1,
+      oldEnd: 1,
+      newStart: 1,
+      newEnd: 1,
+      newContent: ['Foo'],
+      newlineAddedAtEnd: true, // this hunk adds a trailing newline
+    };
+    suggestions.set(fileName1, [hunk1]);
+    const comments = buildReviewComments(suggestions);
+    assert.deepStrictEqual(comments, [
+      {
+        body: '```suggestion\nFoo\n\n```', // extra newline indicates trailing newline
+        path: 'foo.txt',
+        line: 1,
+        side: 'RIGHT',
+      },
+    ]);
+  });
 });
 
 describe('makeInlineSuggestions', () => {

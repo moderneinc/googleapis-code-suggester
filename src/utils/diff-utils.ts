@@ -53,9 +53,23 @@ export function parseAllHunks(diff: string): Map<string, Hunk[]> {
       let previousLine: string | null = null;
       let nextLine: string | null = null;
 
+      // Track if this hunk adds a trailing newline to the file.
+      // This happens when "\ No newline at end of file" appears as 'del' type
+      // (old file had no newline) but NOT as 'add' type (new file has newline).
+      let oldHadNoNewline = false;
+      let newHasNoNewline = false;
       chunk.changes.forEach(change => {
         // strip off leading '+', '-', or ' ' and trailing carriage return
         const content = change.content.substring(1).replace(/[\n\r]+$/g, '');
+        // Check for "\ No newline at end of file" marker
+        if (change.content.startsWith('\\ No newline at end of file')) {
+          if (change.type === 'del') {
+            oldHadNoNewline = true;
+          } else if (change.type === 'add') {
+            newHasNoNewline = true;
+          }
+          return;
+        }
         if (change.type === 'normal') {
           normalLines++;
           if (changeSeen) {
@@ -79,12 +93,15 @@ export function parseAllHunks(diff: string): Map<string, Hunk[]> {
       });
       const newEnd = newStart + chunk.newLines - normalLines - 1;
       const oldEnd = oldStart + chunk.oldLines - normalLines - 1;
+      // A newline is added at the end when old had no newline but new does
+      const newlineAddedAtEnd = oldHadNoNewline && !newHasNoNewline;
       let hunk: Hunk = {
         oldStart: oldStart,
         oldEnd: oldEnd,
         newStart: newStart,
         newEnd: newEnd,
         newContent: newLines,
+        ...(newlineAddedAtEnd ? {newlineAddedAtEnd: true} : {}),
       };
       if (previousLine) {
         hunk = {...hunk, previousLine: previousLine};
