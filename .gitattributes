@@ -1,4 +1,5 @@
 *.ts text eol=lf
 *.js text eol=lf
+*.diff text eol=lf
 protos/* linguist-generated
 **/api-extractor.json  linguist-language=JSON-with-Comments
