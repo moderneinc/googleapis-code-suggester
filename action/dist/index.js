@@ -30765,10 +30765,12 @@ function buildReviewComments(suggestions) {
     suggestions.forEach((hunks, fileName) => {
         hunks.forEach(hunk => {
             const newContent = hunk.newContent.join('\n');
+            // Add extra newline when this hunk adds a trailing newline to the file
+            const trailingNewline = hunk.newlineAddedAtEnd ? '\n\n' : '\n';
             if (hunk.oldStart === hunk.oldEnd) {
                 const singleComment = {
                     path: fileName,
-                    body: `\`\`\`suggestion\n${newContent}\n\`\`\``,
+                    body: `\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``,
                     line: hunk.oldEnd,
                     side: 'RIGHT',
                 };
@@ -30777,7 +30779,7 @@ function buildReviewComments(suggestions) {
             else {
                 const comment = {
                     path: fileName,
-                    body: `\`\`\`suggestion\n${newContent}\n\`\`\``,
+                    body: `\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``,
                     start_line: hunk.oldStart,
                     line: hunk.oldEnd,
                     side: 'RIGHT',
@@ -31270,9 +31272,24 @@ function parseAllHunks(diff) {
             const newLines = [];
             let previousLine = null;
             let nextLine = null;
+            // Track if this hunk adds a trailing newline to the file.
+            // This happens when "\ No newline at end of file" appears as 'del' type
+            // (old file had no newline) but NOT as 'add' type (new file has newline).
+            let oldHadNoNewline = false;
+            let newHasNoNewline = false;
             chunk.changes.forEach(change => {
                 // strip off leading '+', '-', or ' ' and trailing carriage return
                 const content = change.content.substring(1).replace(/[\n\r]+$/g, '');
+                // Check for "\ No newline at end of file" marker
+                if (change.content.startsWith('\\ No newline at end of file')) {
+                    if (change.type === 'del') {
+                        oldHadNoNewline = true;
+                    }
+                    else if (change.type === 'add') {
+                        newHasNoNewline = true;
+                    }
+                    return;
+                }
                 if (change.type === 'normal') {
                     normalLines++;
                     if (changeSeen) {
@@ -31298,12 +31315,15 @@ function parseAllHunks(diff) {
             });
             const newEnd = newStart + chunk.newLines - normalLines - 1;
             const oldEnd = oldStart + chunk.oldLines - normalLines - 1;
+            // A newline is added at the end when old had no newline but new does
+            const newlineAddedAtEnd = oldHadNoNewline && !newHasNoNewline;
             let hunk = {
                 oldStart: oldStart,
                 oldEnd: oldEnd,
                 newStart: newStart,
                 newEnd: newEnd,
                 newContent: newLines,
+                ...(newlineAddedAtEnd ? { newlineAddedAtEnd: true } : {}),
             };
             if (previousLine) {
                 hunk = { ...hunk, previousLine: previousLine };
@@ -31371,6 +31391,7 @@ function adjustHunkUp(hunk) {
         newStart: hunk.newStart - 1,
         newEnd: hunk.newEnd,
         newContent: [hunk.previousLine, ...hunk.newContent],
+        ...(hunk.newlineAddedAtEnd ? { newlineAddedAtEnd: true } : {}),
     };
 }
 /**
@@ -31382,6 +31403,8 @@ function adjustHunkDown(hunk) {
     if (!hunk.nextLine) {
         return null;
     }
+    // When extending down, the hunk is no longer at the end of file,
+    // so newlineAddedAtEnd does not apply
     return {
         oldStart: hunk.oldStart,
         oldEnd: hunk.oldEnd + 1,
