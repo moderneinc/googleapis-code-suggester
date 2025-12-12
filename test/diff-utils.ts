@@ -77,6 +77,7 @@ describe('parseAllHunks', () => {
         newStart: 5,
         newEnd: 6,
         newContent: ["  args: ['sleep', '30']", "  id: 'foobar'"],
+        newlineAddedAtEnd: true,
         previousLine: "- name: 'ubuntu'",
       },
     ]);
