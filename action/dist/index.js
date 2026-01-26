@@ -31372,6 +31372,7 @@ function getSuggestedHunks(oldContent, newContent) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.adjustHunkUp = adjustHunkUp;
 exports.adjustHunkDown = adjustHunkDown;
+exports.mergeAdjacentHunks = mergeAdjacentHunks;
 exports.getRawSuggestionHunks = getRawSuggestionHunks;
 exports.partitionSuggestedHunksByScope = partitionSuggestedHunksByScope;
 const diff_utils_1 = __nccwpck_require__(6364);
@@ -31414,6 +31415,56 @@ function adjustHunkDown(hunk) {
     };
 }
 /**
+ * Merge adjacent single-line hunks into multiline hunks.
+ * This handles cases where the diff algorithm produces separate hunks
+ * for changes that should be suggested together (e.g., swapping two lines).
+ * @param {Hunk[]} hunks the hunks to potentially merge
+ * @returns {Hunk[]} hunks with adjacent single-line hunks merged
+ */
+function mergeAdjacentHunks(hunks) {
+    if (hunks.length <= 1) {
+        return hunks;
+    }
+    const mergedHunks = [];
+    let currentHunk = null;
+    for (const hunk of hunks) {
+        if (currentHunk === null) {
+            currentHunk = hunk;
+            continue;
+        }
+        // Check if this hunk is adjacent to the current hunk
+        // Adjacent means: currentHunk.oldEnd + 1 === hunk.oldStart
+        if (currentHunk.oldEnd + 1 === hunk.oldStart) {
+            // Merge the hunks
+            currentHunk = {
+                oldStart: currentHunk.oldStart,
+                oldEnd: hunk.oldEnd,
+                newStart: currentHunk.newStart,
+                newEnd: hunk.newEnd,
+                newContent: [...currentHunk.newContent, ...hunk.newContent],
+                // Preserve previousLine from the first hunk
+                ...(currentHunk.previousLine
+                    ? { previousLine: currentHunk.previousLine }
+                    : {}),
+                // Preserve nextLine from the last hunk
+                ...(hunk.nextLine ? { nextLine: hunk.nextLine } : {}),
+                // Only keep newlineAddedAtEnd if the last hunk has it
+                ...(hunk.newlineAddedAtEnd ? { newlineAddedAtEnd: true } : {}),
+            };
+        }
+        else {
+            // Not adjacent, push the current hunk and start a new one
+            mergedHunks.push(currentHunk);
+            currentHunk = hunk;
+        }
+    }
+    // Don't forget the last hunk
+    if (currentHunk !== null) {
+        mergedHunks.push(currentHunk);
+    }
+    return mergedHunks;
+}
+/**
  * Given a map where the key is the file name and the value is the
  * old content and new content of the file
  * compute the hunk for each file whose old and new contents differ.
@@ -31430,7 +31481,9 @@ function getRawSuggestionHunks(diffContents) {
             return;
         }
         const hunks = (0, diff_utils_1.getSuggestedHunks)(fileDiffContent.oldContent, fileDiffContent.newContent);
-        fileHunks.set(fileName, hunks);
+        // Merge adjacent hunks to handle cases like line swaps
+        const mergedHunks = mergeAdjacentHunks(hunks);
+        fileHunks.set(fileName, mergedHunks);
     });
     logger_1.logger.info('Parsed ranges of old and new patch');
     return fileHunks;
