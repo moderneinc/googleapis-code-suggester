@@ -99,7 +99,9 @@ export function buildReviewComments(
       // Add extra newline when this hunk adds a trailing newline to the file
       const trailingNewline = hunk.newlineAddedAtEnd ? '\n\n' : '\n';
       // Include context comment from @@ header if present
-      const contextPrefix = hunk.contextComment ? `${hunk.contextComment}\n` : '';
+      const contextPrefix = hunk.contextComment
+        ? `${hunk.contextComment}\n`
+        : '';
       const suggestionBody = `${contextPrefix}\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``;
       if (hunk.oldStart === hunk.oldEnd) {
         const singleComment: SingleLineComment = {
