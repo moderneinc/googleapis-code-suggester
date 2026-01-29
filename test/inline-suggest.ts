@@ -165,6 +165,30 @@ describe('buildFileComments', () => {
       },
     ]);
   });
+  it('Includes context comment from hunk header before suggestion', () => {
+    const suggestions: Map<string, Hunk[]> = new Map();
+    const fileName1 = 'foo.ts';
+    const hunk1: Hunk = {
+      oldStart: 10,
+      oldEnd: 12,
+      newStart: 10,
+      newEnd: 12,
+      newContent: ['  return x + y;'],
+      contextComment: 'function add(x, y) {',
+    };
+    suggestions.set(fileName1, [hunk1]);
+    const comments = buildReviewComments(suggestions);
+    assert.deepStrictEqual(comments, [
+      {
+        body: 'function add(x, y) {\n```suggestion\n  return x + y;\n```',
+        path: 'foo.ts',
+        start_line: 10,
+        line: 12,
+        side: 'RIGHT',
+        start_side: 'RIGHT',
+      },
+    ]);
+  });
 });
 
 describe('makeInlineSuggestions', () => {
