@@ -30767,15 +30767,10 @@ function buildReviewComments(suggestions) {
             const newContent = hunk.newContent.join('\n');
             // Add extra newline when this hunk adds a trailing newline to the file
             const trailingNewline = hunk.newlineAddedAtEnd ? '\n\n' : '\n';
-            // Include context comment from @@ header if present
-            const contextPrefix = hunk.contextComment
-                ? `${hunk.contextComment}\n`
-                : '';
-            const suggestionBody = `${contextPrefix}\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``;
             if (hunk.oldStart === hunk.oldEnd) {
                 const singleComment = {
                     path: fileName,
-                    body: suggestionBody,
+                    body: `\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``,
                     line: hunk.oldEnd,
                     side: 'RIGHT',
                 };
@@ -30784,7 +30779,7 @@ function buildReviewComments(suggestions) {
             else {
                 const comment = {
                     path: fileName,
-                    body: suggestionBody,
+                    body: `\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``,
                     start_line: hunk.oldStart,
                     line: hunk.oldEnd,
                     side: 'RIGHT',
@@ -31270,7 +31265,6 @@ function parseAllHunks(diff) {
     parseDiff(diff).forEach(file => {
         const filename = file.to ? file.to : file.from;
         const chunks = file.chunks.map(chunk => {
-            var _a;
             let oldStart = chunk.oldStart;
             let newStart = chunk.newStart;
             let normalLines = 0;
@@ -31323,10 +31317,6 @@ function parseAllHunks(diff) {
             const oldEnd = oldStart + chunk.oldLines - normalLines - 1;
             // A newline is added at the end when old had no newline but new does
             const newlineAddedAtEnd = oldHadNoNewline && !newHasNoNewline;
-            // Extract context comment from the @@ header (e.g., function name)
-            // Format: @@ -oldStart,oldLines +newStart,newLines @@ context comment
-            const contextMatch = chunk.content.match(/^@@[^@]+@@\s*(.+)$/);
-            const contextComment = (_a = contextMatch === null || contextMatch === void 0 ? void 0 : contextMatch[1]) === null || _a === void 0 ? void 0 : _a.trim();
             let hunk = {
                 oldStart: oldStart,
                 oldEnd: oldEnd,
@@ -31334,7 +31324,6 @@ function parseAllHunks(diff) {
                 newEnd: newEnd,
                 newContent: newLines,
                 ...(newlineAddedAtEnd ? { newlineAddedAtEnd: true } : {}),
-                ...(contextComment ? { contextComment } : {}),
             };
             if (previousLine) {
                 hunk = { ...hunk, previousLine: previousLine };
