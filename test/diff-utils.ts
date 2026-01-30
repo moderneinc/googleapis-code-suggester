@@ -42,7 +42,6 @@ describe('parseAllHunks', () => {
         newContent: ["  args: ['sleep', '301']"],
         nextLine: "- name: 'ubuntu'",
         previousLine: "- name: 'ubuntu'",
-        contextComment: 'steps:',
       },
     ]);
   });
@@ -61,7 +60,6 @@ describe('parseAllHunks', () => {
         newEnd: 8,
         newContent: ["  args: ['foobar']", '  id: asdf'],
         previousLine: "- name: 'ubuntu'",
-        contextComment: 'steps:',
       },
     ]);
   });
@@ -81,7 +79,6 @@ describe('parseAllHunks', () => {
         newContent: ["  args: ['sleep', '30']", "  id: 'foobar'"],
         newlineAddedAtEnd: true,
         previousLine: "- name: 'ubuntu'",
-        contextComment: 'steps:',
       },
     ]);
   });
@@ -155,7 +152,6 @@ describe('parseAllHunks', () => {
         newContent: ["  id: 'added'"],
         nextLine: "- name: 'ubuntu'",
         previousLine: "  args: ['sleep', '30']",
-        contextComment: 'steps:',
       },
     ]);
   });

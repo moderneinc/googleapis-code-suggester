@@ -188,8 +188,6 @@ export interface Hunk {
   readonly nextLine?: string;
   /** True when this hunk adds a trailing newline to the end of the file. */
   readonly newlineAddedAtEnd?: boolean;
-  /** The context comment from the @@ header (e.g., function name). */
-  readonly contextComment?: string;
 }
 
 interface LogFn {

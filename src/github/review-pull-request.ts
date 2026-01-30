@@ -98,15 +98,10 @@ export function buildReviewComments(
       const newContent = hunk.newContent.join('\n');
       // Add extra newline when this hunk adds a trailing newline to the file
       const trailingNewline = hunk.newlineAddedAtEnd ? '\n\n' : '\n';
-      // Include context comment from @@ header if present
-      const contextPrefix = hunk.contextComment
-        ? `${hunk.contextComment}\n`
-        : '';
-      const suggestionBody = `${contextPrefix}\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``;
       if (hunk.oldStart === hunk.oldEnd) {
         const singleComment: SingleLineComment = {
           path: fileName,
-          body: suggestionBody,
+          body: `\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``,
           line: hunk.oldEnd,
           side: 'RIGHT',
         };
@@ -114,7 +109,7 @@ export function buildReviewComments(
       } else {
         const comment: MultilineComment = {
           path: fileName,
-          body: suggestionBody,
+          body: `\`\`\`suggestion\n${newContent}${trailingNewline}\`\`\``,
           start_line: hunk.oldStart,
           line: hunk.oldEnd,
           side: 'RIGHT',

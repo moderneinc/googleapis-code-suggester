@@ -95,10 +95,6 @@ export function parseAllHunks(diff: string): Map<string, Hunk[]> {
       const oldEnd = oldStart + chunk.oldLines - normalLines - 1;
       // A newline is added at the end when old had no newline but new does
       const newlineAddedAtEnd = oldHadNoNewline && !newHasNoNewline;
-      // Extract context comment from the @@ header (e.g., function name)
-      // Format: @@ -oldStart,oldLines +newStart,newLines @@ context comment
-      const contextMatch = chunk.content.match(/^@@[^@]+@@\s*(.+)$/);
-      const contextComment = contextMatch?.[1]?.trim();
       let hunk: Hunk = {
         oldStart: oldStart,
         oldEnd: oldEnd,
@@ -106,7 +102,6 @@ export function parseAllHunks(diff: string): Map<string, Hunk[]> {
         newEnd: newEnd,
         newContent: newLines,
         ...(newlineAddedAtEnd ? {newlineAddedAtEnd: true} : {}),
-        ...(contextComment ? {contextComment} : {}),
       };
       if (previousLine) {
         hunk = {...hunk, previousLine: previousLine};
